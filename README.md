@@ -1,222 +1,261 @@
 # Conveyor Puzzle Prototype
 
-## Overview
+A grid-based conveyor routing puzzle built in Unity 6 using C#. The player modifies conveyor behavior and routing elements to guide colored parcels from their starting positions to matching destination gates.
 
-This project is a small puzzle prototype built in Unity 6 that demonstrates conveyor-based item routing on a grid-based board.
+The prototype demonstrates gameplay architecture, puzzle logic, runtime validation, and multiple interactable mechanics using generated runtime visuals rather than authored art assets.
 
-The player interacts with puzzle elements to guide moving items from a spawn point to the correct destination while avoiding incorrect routes and failed deliveries. The prototype focuses on clean gameplay architecture, extensibility, and puzzle-solving mechanics rather than visual presentation.
-
----
-
-## Features
-
-### Core Systems
-
-* Grid-based board
-* Tile-driven movement system
-* Conveyor belt routing
-* Item movement between tiles
-* Win/Loss conditions
-* Three playable levels with increasing difficulty
-
-### Interactive Puzzle Elements
-
-#### 1. Switches
-
-Switches can be activated by the player to change the routing path at conveyor forks.
-
-#### 2. Teleporters
-
-Items entering a teleporter instantly exit from a linked teleporter elsewhere on the board.
-
-#### 3. Color Goals
-
-Items must reach a destination matching their assigned color. Delivering an item to the wrong goal results in level failure.
-
-#### 4. Conveyor Reverse Button
-
-Special buttons reverse the direction of connected conveyors, allowing players to alter item flow and solve routing challenges.
+Open `Assets/Scenes/ConveyorPuzzle.unity` and press Play.
 
 ---
 
-## Project Architecture
+# Controls
 
-The project follows a modular tile-based architecture.
+| Action                     | Input                           |
+| -------------------------- | ------------------------------- |
+| Toggle Switch              | Left Click on orange `SW` tile  |
+| Reverse Conveyor Direction | Left Click on purple `REV` tile |
+| Start / Pause Simulation   | Space or `Run` button           |
+| Restart Current Level      | R or `Restart` button           |
+| Jump to Level 1            | 1                               |
+| Jump to Level 2            | 2                               |
+| Jump to Level 3            | 3                               |
 
-### Main Components
-
-#### Grid Manager
-
-Responsible for:
-
-* Creating and managing the grid
-* Tile lookup
-* Coordinate management
-
-#### Tile System
-
-All gameplay tiles inherit from a common base tile class.
-
-Examples:
-
-* ConveyorTile
-* SwitchTile
-* TeleporterTile
-* GoalTile
-* SpawnTile
-
-This allows new puzzle mechanics to be added without modifying the item movement system.
-
-#### Item Controller
-
-Responsible for:
-
-* Tile-to-tile movement
-* Reading conveyor directions
-* Triggering tile interactions
-* Detecting win/loss conditions
-
-#### Level Manager
-
-Responsible for:
-
-* Level completion
-* Failure detection
-* Restart functionality
+Yellow preview markers display the predicted parcel route while planning.
 
 ---
 
-## Levels
+# Assessment Requirements Coverage
 
-### Level 1 – Basic Routing
+✓ Grid-based board
+
+✓ Moving parcels traveling along conveyor paths
+
+✓ Switch interactable (fork routing)
+
+✓ Conveyor reverse button
+
+✓ Blocker mechanic
+
+✓ Teleporter mechanic
+
+✓ Color gate mechanic
+
+✓ Win condition
+
+✓ Loss condition
+
+✓ Three playable levels
+
+✓ Runtime level validation
+
+---
+
+# Implemented Mechanics
+
+### Conveyors
+
+Parcels travel tile-by-tile across directional conveyor belts.
+
+### Switches
+
+Fork tiles that can redirect parcels between multiple paths.
+
+### Conveyor Reverse Button
+
+Reverses the active conveyor drive direction and changes parcel travel behavior.
+
+### Color Gates
+
+Destination gates require parcels of a matching color. Delivering a parcel to the wrong gate causes a failure state.
+
+### Blockers
+
+Reverse parcel travel direction when contacted.
+
+### Teleporters
+
+Instantly move parcels between paired teleporter locations while preserving puzzle flow.
+
+### Route Preview
+
+The game predicts and visualizes parcel routes before simulation begins, helping players understand the current configuration.
+
+### Runtime Validation
+
+Levels are validated when loaded to detect:
+
+* Missing start points
+* Missing destination gates
+* Invalid teleporter pairs
+* Duplicate tile placements
+* Invalid spawn configurations
+
+---
+
+# Levels
+
+## Level 1 — Fork Sorting
 
 Introduces:
 
-* Conveyor movement
-* Goal delivery
-* Simple switch interaction
+* Conveyor routing
+* Switch interaction
+* Color gates
 
-Objective:
-Guide the item from spawn to goal.
+The player must correctly route a parcel to the matching destination.
 
 ---
 
-### Level 2 – Teleporters
+## Level 2 — Reverse Belt
 
 Introduces:
 
-* Teleporter mechanics
-* Alternate routing paths
+* Conveyor reverse button
+* Direction management
 
-Objective:
-Use switches and teleporters to reach the destination.
-
----
-
-### Level 3 – Advanced Routing
-
-Introduces:
-
-* Conveyor reversal buttons
-* Multiple routing decisions
-* Color-based delivery
-
-Objective:
-Manipulate the conveyor network to deliver the item to the correct goal.
+The player must reverse conveyor travel to successfully deliver the parcel.
 
 ---
 
-## Win Conditions
+## Level 3 — Teleporter Fork
 
-A level is completed when:
+Combines:
 
-* All required items successfully reach their destination.
-* Correct color matching requirements are satisfied.
+* Multiple switches
+* Blockers
+* Teleporter pairs
+* Color gate routing
 
----
-
-## Loss Conditions
-
-A level fails when:
-
-* An item reaches an incorrect destination.
-* An item exits the valid board area.
-* An item enters an invalid routing state.
+This level requires planning several mechanics together to reach the correct destination.
 
 ---
 
-## Design Decisions & Tradeoffs
+# Architecture
 
-### Why a Tile-Based Architecture?
+The project follows a lightweight gameplay architecture with clear separation between level data, runtime state, rendering, and gameplay logic.
 
-A tile-based system provides:
+```text
+LevelData
+    ↓
+ConveyorPuzzleGame
+    ↓
+RuntimeState
+    ↓
+BoardView / ParcelView
+```
 
-* Clear separation of responsibilities
-* Easy addition of new mechanics
-* Better maintainability
-* Faster level creation
+## Core Scripts
 
-### Why Manual Level Creation?
+### LevelData.cs
 
-Levels are created directly inside Unity for simplicity and rapid iteration during the assessment.
+Contains all level definitions and puzzle configuration data.
 
-For a larger project, level data would be stored using ScriptableObjects or external level files.
+### ConveyorPuzzleGame.cs
+
+Primary gameplay coordinator responsible for:
+
+* Simulation updates
+* Input handling
+* Win/loss evaluation
+* Level loading
+* Camera setup
+* HUD integration
+
+### RuntimeState.cs
+
+Stores mutable runtime information for:
+
+* Tiles
+* Parcels
+* Interactive elements
+
+### BoardView.cs
+
+Builds and updates the generated puzzle board, arrows, labels, and interactive tiles.
+
+### ParcelView.cs
+
+Creates and updates parcel visuals during simulation.
+
+### HudView.cs
+
+Handles the in-game user interface and player commands.
+
+### PuzzleGrid.cs
+
+Provides:
+
+* Grid coordinate management
+* World-space conversion
+* Movement interpolation
+* Bounds checking
+
+### GridDirection.cs
+
+Centralized directional utility functions used by conveyor and movement systems.
+
+### PuzzleTheme.cs
+
+Provides generated materials, colors, and visual theme configuration.
+
+### LevelValidator.cs
+
+Validates level integrity before gameplay begins.
+
+### PuzzleTileClickTarget.cs
+
+Marks generated board objects as interactive targets.
 
 ---
 
-## Improvements With More Time
+# Technical Notes
 
-If given additional development time, I would add:
+The prototype intentionally generates all gameplay visuals at runtime using Unity primitive meshes.
 
-### Gameplay
+Generated elements include:
 
-* Multiple simultaneous items
-* Additional puzzle mechanics
-* Dynamic obstacles
-* Undo system
-* Puzzle hints
+* Board tiles
+* Conveyor arrows
+* Labels
+* Parcel objects
+* Camera setup
+* Lighting
 
-### Tools
+This keeps the project lightweight and allows gameplay systems to remain independent from content creation workflows.
 
-* Custom level editor
-* ScriptableObject-based level definitions
-* Automated puzzle validation
-
-### Technical
-
-* Object pooling
-* Save/Load system
-* Event-driven architecture
-* Unit tests for gameplay systems
-
-### Presentation
-
-* Visual conveyor animations
-* Particle effects
-* Audio feedback
-* Improved UI and transitions
+The architecture was designed so additional mechanics can be introduced by extending level data, tile handling, and board rendering systems without significantly increasing complexity in the main gameplay controller.
 
 ---
 
-## Controls
+# Tradeoffs
 
-### Mouse
-
-* Left Click: Interact with switches and buttons
-
-### Keyboard
-
-* R: Restart current level
+* Levels are defined in C# rather than through a custom editor to keep implementation time focused on gameplay systems.
+* Primitive meshes and TextMesh labels are used instead of production art assets.
+* Parcel movement uses deterministic grid stepping rather than physics simulation, ensuring predictable puzzle behavior and consistent results across frame rates.
+* IMGUI was selected for the HUD to minimize setup overhead and keep focus on gameplay implementation.
 
 ---
 
-## Unity Version
+# Future Improvements
 
-Unity 6
+Given additional development time, the following improvements would be prioritized:
+
+* Custom level editor with visual authoring tools
+* ScriptableObject-based level assets
+* Enhanced route preview and planning tools
+* Multiple parcels with collision and timing mechanics
+* Conveyor animations and visual effects
+* Audio feedback and polish
+* Save/load functionality
+* Additional puzzle mechanics and level variety
+* Automated puzzle solvability analysis
+* Expanded UI and accessibility features
 
 ---
 
-## Author
+# Development Environment
 
-Shailja Shrivastava
-Game Developer
+* Unity 6
+* C#
+* No third-party gameplay plugins
+* Runtime-generated visuals using Unity primitives
